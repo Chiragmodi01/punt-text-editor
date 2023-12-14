@@ -1,24 +1,42 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import "./App.css";
+import RichEditor from "./screens/RichEditor/RichEditor";
+import { Alert, Snackbar } from "@mui/material";
+import { useMain } from "./context/main-context";
 
 function App() {
+  const { showToast, setShowToast } = useMain();
+
+  const handleClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setShowToast({
+      status: false,
+      message: "",
+    });
+  };
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+      <Snackbar
+        open={showToast.status && showToast.message.length > 0}
+        autoHideDuration={2500}
+        onClose={handleClose}
+      >
+        <Alert
+          variant="filled"
+          onClose={handleClose}
+          severity="success"
+          sx={{ width: "100%" }}
         >
-          Learn React
-        </a>
-      </header>
+          {showToast.message}
+        </Alert>
+      </Snackbar>
+      <RichEditor />
     </div>
   );
 }
