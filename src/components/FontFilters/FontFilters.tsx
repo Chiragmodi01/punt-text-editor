@@ -13,36 +13,66 @@ import {
   IconButton,
 } from "@mui/material";
 import { StyledIOSSwitch } from "./StyledSwitch";
-import { useTheme } from "@emotion/react";
-import { wrap } from "module";
 
 const FontFilters = () => {
-  const {
-    handleShowToast,
-    fontsData,
-    setFontsData,
-    selectedFontData,
-    setSelectedFontData,
-  } = useMain();
+  const { handleShowToast, fontsData, selectedFontData, setSelectedFontData } =
+    useMain();
 
-  const theme = useTheme();
+  function findClosestFontWeight(fontWeight: string, fontWeightsArr: any) {
+    const isSelectedFontItalic = fontWeight.includes("italic");
+    const numericWeight = Number(fontWeight.replace(/[^0-9]/g, "").trim());
+
+    const italicVariants = fontWeightsArr.filter((fw: any) =>
+      fw.includes("italic")
+    );
+    const nonitalicVariants = fontWeightsArr.filter(
+      (fw: any) => !fw.includes("italic")
+    );
+
+    const isArrItalic =
+      isSelectedFontItalic && italicVariants.length > 0 ? true : false;
+
+    const closestFontWeight = (
+      isSelectedFontItalic && italicVariants.length > 0
+        ? italicVariants
+        : nonitalicVariants.length > 0
+        ? nonitalicVariants
+        : italicVariants
+    ).reduce((prev: string, curr: any) => {
+      const prevNumericWeight = prev.includes("italic")
+        ? Number(prev.replace(/[^0-9]/g, "").trim())
+        : Number(prev);
+
+      const currNumeric = Number(curr.replace("italic", " "));
+
+      return Math.abs(currNumeric - numericWeight) <
+        Math.abs(prevNumericWeight - numericWeight)
+        ? curr
+        : prev;
+    });
+    return { isArrItalic, closestFontWeight };
+  }
 
   const handleFontFamilyChange = (e: SelectChangeEvent) => {
     const selectedFontFamily = e.target.value;
     const selectedFontWeights = fontsData[selectedFontFamily];
     const defaultFontWeight = Object.keys(selectedFontWeights)[0];
 
+    const closestFontWeightOutput = findClosestFontWeight(
+      JSON.stringify(selectedFontData.fontWeight),
+      Object.keys(selectedFontWeights)
+    );
+
     setSelectedFontData({
       name: selectedFontFamily,
       fontUrl: selectedFontWeights[defaultFontWeight],
-      isItalic: defaultFontWeight.includes("italic"),
-      fontWeight: parseInt(defaultFontWeight),
+      isItalic: closestFontWeightOutput.isArrItalic,
+      fontWeight: closestFontWeightOutput.closestFontWeight,
     });
   };
 
   const handleFontWeightChange = (e: SelectChangeEvent) => {
     const selectedFontWeight = e.target.value;
-    console.log("chirag", selectedFontWeight);
     const isItalic = selectedFontWeight.includes("italic");
 
     setSelectedFontData({
@@ -58,7 +88,7 @@ const FontFilters = () => {
       name: "",
       fontUrl: "",
       isItalic: false,
-      fontWeight: 0,
+      fontWeight: "",
     });
     localStorage.removeItem("selectedFontData");
   };

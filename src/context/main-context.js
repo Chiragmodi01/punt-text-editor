@@ -39,11 +39,10 @@ function MainProvider({ children }) {
     const localSelectedFontsData = JSON.parse(
       localStorage.getItem("selectedFontData")
     );
-    const localAutosavedText = JSON.stringify(
-      localStorage.getItem("autosave-text")
-    );
-    (localAutosavedText || localSelectedFontsData) &&
+    const localAutosavedText = localStorage.getItem("autosave-text");
+    if (localAutosavedText || localSelectedFontsData) {
       handleShowToast("Previous Changes Retrieved!");
+    }
     localSelectedFontsData && setSelectedFontData(localSelectedFontsData);
   }, []);
 
