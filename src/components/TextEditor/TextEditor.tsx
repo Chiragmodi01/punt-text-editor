@@ -2,12 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useMain } from "../../context/main-context";
 import { StyledTextEditor, fontFace } from "./StyledTextEditor";
 import { createGlobalStyle } from "styled-components";
-import { Button, Stack, Box, Tooltip, Alert } from "@mui/material";
+import { Button, Stack, Box, Tooltip } from "@mui/material";
 
 const TextEditor = () => {
   const { selectedFontData, handleShowToast } = useMain();
-  const [inputVal, setInputVal] = useState("");
-  let timer: NodeJS.Timeout;
+  const [inputVal, setInputVal] = useState<string>("");
 
   const GlobalStyles = createGlobalStyle`
   ${fontFace}
@@ -19,8 +18,12 @@ const TextEditor = () => {
     }
   }, []);
 
-  const handleInputChange = (e: any) => {
-    setInputVal(e.target.value);
+  const handleInputChange = (
+    event?: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    if (event) {
+      setInputVal(event.target.value);
+    }
   };
 
   useEffect(() => {

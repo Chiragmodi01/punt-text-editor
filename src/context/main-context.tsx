@@ -1,24 +1,12 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import data from "../data.json";
+import { IFontData, ISelectedFontData, IMainContext } from "../Interfaces";
 
-const MainContext = createContext();
+const MainContext = createContext<IMainContext | undefined>(undefined);
 
-// interface IFontData {
-//   [key: string]: {
-//     [key: string]: string;
-//   };
-// }
-
-// interface ISelectedFontData {
-//   name: string;
-//   fontUrl: string;
-//   isItalic: boolean;
-//   fontWeight: number;
-// }
-
-function MainProvider({ children }) {
-  const [fontsData, setFontsData] = useState(data);
-  const [selectedFontData, setSelectedFontData] = useState({
+function MainProvider({ children }: { children: React.ReactNode }) {
+  const [fontsData, setFontsData] = useState<IFontData>(data);
+  const [selectedFontData, setSelectedFontData] = useState<ISelectedFontData>({
     name: "",
     fontUrl: "",
     isItalic: false,
@@ -28,7 +16,7 @@ function MainProvider({ children }) {
     status: true,
     message: "",
   });
-  const handleShowToast = (message) => {
+  const handleShowToast = (message: string) => {
     setShowToast({
       status: true,
       message,
@@ -37,7 +25,7 @@ function MainProvider({ children }) {
 
   useEffect(() => {
     const localSelectedFontsData = JSON.parse(
-      localStorage.getItem("selectedFontData")
+      localStorage.getItem("selectedFontData") || "null"
     );
     const localAutosavedText = localStorage.getItem("autosave-text");
     if (localAutosavedText || localSelectedFontsData) {
@@ -52,26 +40,29 @@ function MainProvider({ children }) {
         "selectedFontData",
         JSON.stringify(selectedFontData)
       );
-    console.log("fontsData", selectedFontData);
   }, [selectedFontData]);
 
+  const contextValue: IMainContext = {
+    fontsData,
+    setFontsData,
+    selectedFontData,
+    setSelectedFontData,
+    showToast,
+    setShowToast,
+    handleShowToast,
+  };
+
   return (
-    <MainContext.Provider
-      value={{
-        fontsData,
-        setFontsData,
-        selectedFontData,
-        setSelectedFontData,
-        showToast,
-        setShowToast,
-        handleShowToast,
-      }}
-    >
-      {children}
-    </MainContext.Provider>
+    <MainContext.Provider value={contextValue}>{children}</MainContext.Provider>
   );
 }
 
-const useMain = () => useContext(MainContext);
+const useMain = () => {
+  const context = useContext(MainContext);
+  if (!context) {
+    throw new Error("useMain must be used within a MainProvider");
+  }
+  return context;
+};
 
 export { MainProvider, useMain };
